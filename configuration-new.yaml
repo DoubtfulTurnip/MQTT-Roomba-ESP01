@@ -1,0 +1,28 @@
+## Buttons intead of switches
+
+- platform: mqtt
+  unique_id: roomba_return_button
+  name: "Roomba Go Home"
+  command_topic: "roomba/commands"
+  payload_press: "return"
+  qos: 2
+  retain: true
+  entity_category: "config"
+
+- platform: mqtt
+  unique_id: roomba_stop_button
+  name: "Roomba Stop"
+  command_topic: "roomba/commands"
+  payload_press: "stop"
+  qos: 2
+  retain: true
+  entity_category: "config"
+
+- platform: mqtt
+  unique_id: roomba_start_button
+  name: "Roomba Go Clean"
+  command_topic: "roomba/commands"
+  payload_press: "start"
+  qos: 2
+  retain: true
+  entity_category: "config"
