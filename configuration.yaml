@@ -1,0 +1,50 @@
+## Roomba Buttons
+  mqtt:
+  button:
+    - unique_id: roomba_return_button
+      name: "Roomba Go Home"
+      command_topic: "roomba/commands"
+      payload_press: "return"
+      qos: 2
+      retain: true
+      entity_category: "config"
+
+  mqtt:
+  button:
+    - unique_id: roomba_stop_button
+      name: "Roomba Stop"
+      command_topic: "roomba/commands"
+      payload_press: "stop"
+      qos: 2
+      retain: true
+      entity_category: "config"
+  
+  mqtt:
+  button:
+    - unique_id: roomba_start_button
+      name: "Roomba Go Clean"
+      command_topic: "roomba/commands"
+      payload_press: "start"
+      qos: 2
+      retain: true
+      entity_category: "config"  
+
+
+ ## Roomba Switch 
+ 
+  switch:
+  - platform: mqtt
+    name: "Roomba"
+    command_topic: "roomba/commands"
+    payload_on: "start"
+    payload_off: "stop"
+    
+## Roomba Sensors
+
+sensor:
+  - platform: mqtt
+    name: "Roomba Status"
+    state_topic: "roomba/currentStatus"
+  - platform: mqtt
+    name: "Roomba Battery"
+    state_topic: "roomba/battery"
