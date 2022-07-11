@@ -1,6 +1,8 @@
 //This version is for the Roomba 600 Series
 //Connect a wire from D4 on the nodeMCU to the BRC pin on the roomba to prevent sleep mode.
 
+//Doubtful Note: I believe that D4 is the RX pin (blue) on the roomba IO but I am still testing.
+
 // Roomba
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
@@ -192,7 +194,7 @@ void stayAwakeHigh()
 
 void setup() 
 {
-  //Roomba
+  //Roomba 
   pinMode(noSleepPin, OUTPUT);
   digitalWrite(noSleepPin, HIGH);
   Serial.begin(115200);
@@ -205,13 +207,11 @@ void setup()
   client.setCallback(callback);
   timer.setInterval(5000, sendInfoRoomba);
   timer.setInterval(60000, stayAwakeLow);
-  // AsyncElegant OTA
+  // AsyncElegant OTA Addition
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
     WiFi.begin(ssid, password);
   Serial.println("");
-
-  // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -221,14 +221,13 @@ void setup()
   Serial.println(ssid);
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
-
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(200, "text/plain", "Hi! I am a Roomba.");
   });
-  
-
+  // Change USERNAME and PASSWORD to preference
   AsyncElegantOTA.begin(&server, "USERNAME", "PASSWORD");
-  AsyncElegantOTA.setID("Dennis");
+  // You can change the ID to whatever you want
+  AsyncElegantOTA.setID("Roomba");
   server.begin();
   Serial.println("HTTP server started");
 }
