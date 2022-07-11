@@ -1,13 +1,17 @@
 //This version is for the Roomba 600 Series
 //Connect a wire from D4 on the nodeMCU to the BRC pin on the roomba to prevent sleep mode.
 
-
-
+// Roomba
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <SimpleTimer.h>
 #include <Roomba.h>
+// AsyncElegant OTA
+#include <Arduino.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncElegantOTA.h>
 
 
 //USER CONFIGURED SECTION START//
@@ -21,6 +25,11 @@ const char *mqtt_client_name = "Roomba"; // Client connections can't have the sa
 //USER CONFIGURED SECTION END//
 
 
+
+// AsyncElegant OTA
+AsyncWebServer server(80);
+
+//Roomba
 WiFiClient espClient;
 PubSubClient client(espClient);
 SimpleTimer timer;
@@ -33,7 +42,7 @@ const int noSleepPin = 2;
 bool boot = true;
 long battery_Current_mAh = 0;
 long battery_Voltage = 0;
-long battery_Total_mAh = 0;
+long battery_Tl_mAh = 0;
 long battery_percent = 0;
 char battery_percent_send[50];
 char battery_Current_mAh_send[50];
@@ -101,7 +110,11 @@ void callback(char* topic, byte* payload, unsigned int length)
     }
     if (newPayload == "stop")
     {
-      stopCleaning();
+      stopMoving();
+    }
+    if (newPayload == "return")
+    {
+      stopReturn();
     }
   }
 }
@@ -117,7 +130,7 @@ void startCleaning()
   client.publish("roomba/status", "Cleaning");
 }
 
-void stopCleaning()
+void stopReturn()
 {
   Serial.write(128);
   delay(50);
@@ -125,6 +138,16 @@ void stopCleaning()
   delay(50);
   Serial.write(143);
   client.publish("roomba/status", "Returning");
+}
+
+void stopMoving()
+{
+  Serial.write(128);
+  delay(50);
+  Serial.write(131);
+  delay(50);
+  Serial.write(133);
+  client.publish("roomba/status", "Stopped");
 }
 
 void sendInfoRoomba()
@@ -137,15 +160,15 @@ void sendInfoRoomba()
   battery_Current_mAh = tempBuf[1]+256*tempBuf[0];
   delay(50);
   roomba.getSensors(26, tempBuf, 2);
-  battery_Total_mAh = tempBuf[1]+256*tempBuf[0];
-  if(battery_Total_mAh != 0)
+  battery_Tl_mAh = tempBuf[1]+256*tempBuf[0];
+  if(battery_Tl_mAh != 0)
   {
-    int nBatPcent = 100*battery_Current_mAh/battery_Total_mAh;
+    int nBatPcent = 100*battery_Current_mAh/battery_Tl_mAh;
     String temp_str2 = String(nBatPcent);
     temp_str2.toCharArray(battery_percent_send, temp_str2.length() + 1); //packaging up the data to publish to mqtt
     client.publish("roomba/battery", battery_percent_send);
   }
-  if(battery_Total_mAh == 0)
+  if(battery_Tl_mAh == 0)
   {  
     client.publish("roomba/battery", "NO DATA");
   }
@@ -169,6 +192,7 @@ void stayAwakeHigh()
 
 void setup() 
 {
+  //Roomba
   pinMode(noSleepPin, OUTPUT);
   digitalWrite(noSleepPin, HIGH);
   Serial.begin(115200);
@@ -181,6 +205,32 @@ void setup()
   client.setCallback(callback);
   timer.setInterval(5000, sendInfoRoomba);
   timer.setInterval(60000, stayAwakeLow);
+  // AsyncElegant OTA
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+    WiFi.begin(ssid, password);
+  Serial.println("");
+
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(200, "text/plain", "Hi! I am a Roomba.");
+  });
+  
+
+  AsyncElegantOTA.begin(&server, "USERNAME", "PASSWORD");
+  AsyncElegantOTA.setID("Dennis");
+  server.begin();
+  Serial.println("HTTP server started");
 }
 
 void loop() 
