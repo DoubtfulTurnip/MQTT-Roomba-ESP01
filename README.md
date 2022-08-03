@@ -6,14 +6,15 @@ Using MQTT it is possible to then integrate with Home Assistant
 
 ## Changes made from the original repo
 
-* Added an OTA capability using AsyncElegantOTA
+* Added OTA capability using AsyncElegantOTA
   - Included a username and password to provide basic protection for the web interface (this needs to be specified before installation)
   - Just browse to http://{ipaddress}/update to access
 
 * Added the stop function for the Roomba
 * Changed MDI icon to updated naming within the customize yaml
 * Added my own configuration yaml for examples of buttons instead of switches
-
+* Uploaded new wiring fzz schematic to reflect the need for connection to BRC IO on Roomba, this keeps the Roomba awake so you can keep issuing commands
+* Uploaded updated wiring PNG based on new schematic
 
 ## Forked from "The Hook Up" git repo 
 An arduino program to add MQTT commands to your roomba 500 or 600 series.
